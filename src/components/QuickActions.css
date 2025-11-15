@@ -1,0 +1,37 @@
+.quick-actions {
+    background: linear-gradient(135deg, #46804a 0%, #08320b 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.quick-actions h3 {
+    margin: 0 0 15px 0;
+    text-align: center;
+    font-size: 30px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-size: 20px;
+}
+
+.action-buttons button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 15px;
+}
+
+.action-buttons button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

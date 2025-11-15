@@ -1,0 +1,103 @@
+.technology-card {
+    background: rgb(147, 120, 50);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-left: 4px solid #ddd;
+    cursor: pointer;
+    position: relative;
+}
+
+.technology-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.technology-card.completed {
+    border-left-color: #4caf50;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.technology-card.in-progress {
+    border-left-color: #ff9800;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.technology-card.not-started {
+    border-left-color: #f44336;
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+}
+
+.card-title {
+    margin: 0 0 10px 0;
+    color: #8a8a8a;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.card-description {
+    margin: 0 0 15px 0;
+    color: #8a8a8a;
+    line-height: 1.5;
+}
+
+.notes-section {
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.notes-section h4 {
+    margin: 0 0 8px 0;
+    color: #8a8a8a;
+    font-size: 0.9em;
+}
+
+.notes-section textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    font-family: inherit;
+    font-size: 0.9em;
+    resize: vertical;
+    background: rgba(249, 249, 249, 0.701);
+}
+
+.notes-section textarea:focus {
+    outline: none;
+    border-color: #4caf50;
+}
+
+.notes-hint {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px;
+    text-align: right;
+}
+
+.status-indicator {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.status-indicator.completed {
+    background-color: #4caf50;
+    color: white;
+}
+
+.status-indicator.in-progress {
+    background-color: #ff9800;
+    color: white;
+}
+
+.status-indicator.not-started {
+    background-color: #f44336;
+    color: white;
+}
