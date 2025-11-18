@@ -1,8 +1,13 @@
 import './TechnologyCard.css';
 
-function TechnologyCard({ id, title, description, status, notes, onStatusChange, onNotesChange }) {
+function TechnologyCard({ technology, onStatusChange, onNotesChange }) {
+    const { id, title, description, status, notes } = technology;
+
     const handleCardClick = () => {
-        onStatusChange(id);
+        const statusOrder = ['not-started', 'in-progress', 'completed'];
+        const currentIndex = statusOrder.indexOf(status);
+        const nextIndex = (currentIndex + 1) % statusOrder.length;
+        onStatusChange(id, statusOrder[nextIndex]);
     };
 
     const handleNotesChange = (e) => {

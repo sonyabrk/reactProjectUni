@@ -33,7 +33,11 @@
     color: #aaaaaa;
     font-size: 1.2em;
 }
-
+.header2 {
+    color: #aaaaaa;
+    margin-top: 20px;
+    
+}
 .technologies-container {
     background: rgba(172, 116, 37, 0.694);
     padding: 30px;
@@ -112,6 +116,25 @@
 
 .filters button:hover {
     background: #4caf50;
+}
+
+.App-header .progress-bar-container {
+    max-width: 600px;
+    margin: 20px auto 0;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.App-header .progress-label {
+    color: white;
+    font-size: 1.2em;
+}
+
+.App-header .progress-percentage {
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 @media (max-width: 768px) {

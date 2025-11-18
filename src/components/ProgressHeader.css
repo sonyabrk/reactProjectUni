@@ -5,12 +5,15 @@
     border-radius: 15px;
     margin-bottom: 30px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
 .progress-header h2 {
     margin: 0 0 20px 0;
     text-align: center;
     font-size: 1.8em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 .progress-stats {
@@ -26,6 +29,11 @@
     padding: 15px;
     border-radius: 10px;
     backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
 }
 
 .stat-number {
@@ -33,39 +41,34 @@
     font-size: 2em;
     font-weight: bold;
     margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .stat-label {
     font-size: 0.9em;
     opacity: 0.9;
+    font-weight: 500;
 }
 
-.progress-section {
+.progress-bars-section {
     background: rgba(255, 255, 255, 0.1);
     padding: 20px;
     border-radius: 10px;
     backdrop-filter: blur(10px);
 }
 
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-weight: 500;
+.progress-bars-section h3 {
+    margin: 0 0 20px 0;
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: white;
 }
 
-.progress-bar {
-    width: 100%;
-    height: 12px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    overflow: hidden;
+.category-progress {
+    margin: 20px 0;
 }
 
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4caf50, #8bc34a);
-    border-radius: 6px;
-    transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+.category-progress:last-child {
+    margin-bottom: 0;
 }
