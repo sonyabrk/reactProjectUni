@@ -92,7 +92,6 @@
     white-space: nowrap;
 }
 
-/* Стили для фильтров */
 .filters {
     display: flex;
     gap: 10px;
