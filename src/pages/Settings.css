@@ -1,0 +1,179 @@
+.settings-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.settings-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.settings-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section h2 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+}
+
+.setting-group {
+    margin-bottom: 1.5rem;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.setting-group select,
+.setting-group input[type="text"],
+.setting-group input[type="number"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.setting-group select:focus,
+.setting-group input:focus {
+    outline: none;
+    border-color: #46804a;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.data-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.import-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 1000;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #46804a;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #3a6b3d;
+}
+
+.btn-export {
+    background: #9aac3fc6;
+    color: white;
+}
+
+.btn-export:hover {
+    background: #5b671cc6;
+}
+
+.btn-import {
+    background: #b3609edb;
+    color: white;
+}
+
+.btn-import:hover {
+    background: #7f1865db;
+}
+
+.btn-danger {
+    background: #65935dd9;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #1e4c16df;
+}
+
+.btn-secondary {
+    background: #757575;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #616161;
+}
+
+.app-info p {
+    margin-bottom: 0.5rem;
+    color: #666;
+}
+
+.settings-actions {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.reset-modal-content,
+.export-modal-content {
+    text-align: center;
+}
+
+.warning-text {
+    color: #f44336;
+    font-weight: 600;
+    margin: 1rem 0;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .settings-page {
+        padding: 1rem;
+    }
+    
+    .settings-section {
+        padding: 1.5rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .data-actions {
+        gap: 0.75rem;
+    }
+}

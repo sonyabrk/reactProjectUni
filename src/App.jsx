@@ -1,19 +1,22 @@
 import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useState } from 'react';
+import Navigation from './components/Navigation';
 import ProgressHeader from './components/ProgressHeader';
 import TechnologyCard from './components/TechnologyCard';
 import QuickActions from './components/QuickActions';
 import ProgressBar from './components/ProgressBar';
 import useTechnologies from './hooks/useTechnologies';
+import Statistics from './pages/Statistics';
+import Settings from './pages/Settings';
 
-function App() {
+function HomePage() {
     const {
         technologies,
         updateStatus,
         updateNotes,
         markAllAsCompleted,
-        resetAllStatuses,
-        progress
+        resetAllStatuses
     } = useTechnologies();
 
     const [filter, setFilter] = useState('all');
@@ -38,22 +41,7 @@ function App() {
     });
 
     return (
-        <div className="App">
-            <header className="App-header">
-                <h1>Трекер изучения технологий</h1>
-                <p>Прогресс в изучении React и связанных технологий</p>
-                
-                <div className="main-progress-wrapper">
-                    <ProgressBar
-                        progress={progress}
-                        label="Общий прогресс"
-                        color="#4CAF50"
-                        animated={true}
-                        height={25}
-                    />
-                </div>
-            </header>
-
+        <div>
             <ProgressHeader technologies={technologies} />
             
             <QuickActions 
@@ -118,6 +106,29 @@ function App() {
                 </div>
             </main>
         </div>
+    );
+}
+
+function App() {
+    return (
+        <Router basename="/reactProjectUni"> {/* Добавьте basename */}
+            <div className="App">
+                <Navigation />
+                
+                <header className="App-header">
+                    <h1>Трекер изучения технологий</h1>
+                    <p>Прогресс в изучении React и связанных технологий</p>
+                </header>
+
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/statistics" element={<Statistics />} />
+                    <Route path="/settings" element={<Settings />} />
+                    {/* Добавьте fallback маршрут для всех остальных путей */}
+                    <Route path="*" element={<HomePage />} />
+                </Routes>
+            </div>
+        </Router>
     );
 }
 

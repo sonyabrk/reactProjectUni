@@ -46,6 +46,7 @@
     animation: shimmer 2s infinite;
 }
 
+
 @keyframes shimmer {
     0% {
         background-position: -200% 0;
