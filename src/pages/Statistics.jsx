@@ -110,7 +110,7 @@ function Statistics() {
                         <div key={category} className="category-item">
                             <div className="category-header">
                                 <span className="category-name">
-                                    {category === 'frontend' ? '🎨 Фронтенд' : '⚙️ Бэкенд'}
+                                    {category === 'frontend' ? ' Фронтенд' : ' Бэкенд'}
                                 </span>
                                 <span className="category-stats">
                                     {stats.byCategory[category].completed}/
