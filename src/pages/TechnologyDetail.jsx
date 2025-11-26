@@ -16,12 +16,9 @@ function TechnologyDetail() {
                 const technologies = JSON.parse(saved);
                 const tech = technologies.find(t => t.id === parseInt(techId));
                 
-                // Используем setTimeout для асинхронного обновления состояния
-                setTimeout(() => {
-                    setTechnology(tech);
-                    setNotes(tech?.notes || '');
-                    setIsLoading(false);
-                }, 0);
+                setTechnology(tech);
+                setNotes(tech?.notes || '');
+                setIsLoading(false);
             } else {
                 setIsLoading(false);
             }

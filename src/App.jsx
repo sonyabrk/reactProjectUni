@@ -1,16 +1,19 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; 
 import { useState } from 'react';
 import Navigation from './components/Navigation';
 import ProgressHeader from './components/ProgressHeader';
 import TechnologyCard from './components/TechnologyCard';
 import QuickActions from './components/QuickActions';
-import ProgressBar from './components/ProgressBar';
+import TechnologySearch from './components/TechnologySearch';
 import useTechnologies from './hooks/useTechnologies';
 import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import TechnologyDetail from './pages/TechnologyDetail';
 import AddTechnology from './pages/AddTechnology';
+import NotFound from './pages/NotFound';
+import RoadmapImporter from './components/RoadmapImporter';
+
 
 function HomePage() {
     const {
@@ -18,11 +21,15 @@ function HomePage() {
         updateStatus,
         updateNotes,
         markAllAsCompleted,
-        resetAllStatuses
+        resetAllStatuses,
+        addTechnology,
+        updateTechnologyResources
     } = useTechnologies();
 
+
     const [filter, setFilter] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [apiSearchResults, setApiSearchResults] = useState(null);
+    const [searchState, setSearchState] = useState({ loading: false, error: null });
 
     const randomizeNextTechnology = () => {
         const notStarted = technologies.filter(tech => tech.status === 'not-started');
@@ -32,14 +39,33 @@ function HomePage() {
         }
     };
 
-    const filteredTechnologies = technologies.filter(tech => {
-        const matchesSearch = searchQuery === '' || 
-            tech.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            tech.description.toLowerCase().includes(searchQuery.toLowerCase());
-        
+    // Функция для обработки результатов поиска из API
+    const handleSearchResults = (results) => {
+        setApiSearchResults(results);
+    };
+
+    // Функция для обработки состояния поиска
+    const handleSearchStateChange = (state) => {
+        setSearchState(state);
+    };
+
+    // Функция для добавления технологии из поиска
+    const handleAddFromSearch = (tech) => {
+        addTechnology(tech);
+        alert(`Технология "${tech.title}" добавлена в ваш трекер!`);
+    };
+
+    // Функция для обновления ресурсов технологии
+    const handleResourcesUpdate = (techId, resources) => {
+        updateTechnologyResources(techId, resources);
+    };
+
+    // Определяем какие технологии показывать
+    const technologiesToShow = apiSearchResults || technologies;
+
+    const filteredTechnologies = technologiesToShow.filter(tech => {
         const matchesFilter = filter === 'all' || tech.status === filter;
-        
-        return matchesSearch && matchesFilter;
+        return matchesFilter;
     });
 
     return (
@@ -53,18 +79,37 @@ function HomePage() {
                 technologies={technologies}
             />
 
-            <div className="search-section">
-                <div className="search-box">
-                    <input
-                        type="text"
-                        placeholder="Поиск технологий..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <span className="search-results">
-                        Найдено: {filteredTechnologies.length}
-                    </span>
-                </div>
+            <TechnologySearch 
+                onSearchResults={handleSearchResults}
+                onSearchStateChange={handleSearchStateChange}
+            />
+
+            <RoadmapImporter />
+            {/* Показываем результаты поиска или локальные технологии */}
+            <div className="search-results-info">
+                {apiSearchResults && (
+                    <div className="api-results-header">
+                        <h3> Результаты поиска в базе знаний</h3>
+                        <button 
+                            onClick={() => setApiSearchResults(null)}
+                            className="btn btn-secondary"
+                        >
+                            ← Вернуться к моим технологиям
+                        </button>
+                    </div>
+                )}
+                
+                {searchState.loading && (
+                    <div className="search-loading">
+                         Поиск технологий...
+                    </div>
+                )}
+                
+                {searchState.error && (
+                    <div className="search-error-global">
+                         {searchState.error} !
+                    </div>
+                )}
             </div>
 
             <div className="filters">
@@ -95,17 +140,47 @@ function HomePage() {
             </div>
 
             <main className="technologies-container">
-                <h2>Карта технологий ({filteredTechnologies.length})</h2>
+                <h2>
+                    {apiSearchResults ? 'Найденные технологии' : 'Мои технологии'} 
+                    ({filteredTechnologies.length})
+                </h2>
+                
                 <div className="technologies-grid">
                     {filteredTechnologies.map(tech => (
-                        <TechnologyCard
-                            key={tech.id}
-                            technology={tech}
-                            onStatusChange={updateStatus}
-                            onNotesChange={updateNotes}
-                        />
+                        <div key={tech.id} className="technology-card-wrapper">
+                            <TechnologyCard
+                                technology={tech}
+                                onStatusChange={updateStatus}
+                                onNotesChange={updateNotes}
+                                onResourcesUpdate={handleResourcesUpdate}
+                            />
+                            {apiSearchResults && (
+                                <button 
+                                    onClick={() => handleAddFromSearch(tech)}
+                                    className="btn-add-from-search"
+                                >
+                                     Добавить в трекер
+                                </button>
+                            )}
+                        </div>
                     ))}
                 </div>
+
+                {filteredTechnologies.length === 0 && !searchState.loading && (
+                    <div className="empty-state">
+                        <p> Технологии не найдены</p>
+                        {apiSearchResults ? (
+                            <p>Попробуйте изменить поисковый запрос</p>
+                        ) : (
+                            <>
+                                <p>Добавьте технологии вручную через страницу "Добавить технологию"</p>
+                                <Link to="/add-technology" className="btn btn-primary">
+                                     Добавить технологию
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                )}
             </main>
         </div>
     );
@@ -118,7 +193,7 @@ function App() {
                 <Navigation />
                 
                 <header className="App-header">
-                    <h1>Трекер изучения технологий</h1>
+                    <h1> Трекер изучения технологий</h1>
                     <p>Прогресс в изучении React и связанных технологий</p>
                 </header>
 
@@ -128,8 +203,7 @@ function App() {
                     <Route path="/add-technology" element={<AddTechnology />} />
                     <Route path="/statistics" element={<Statistics />} />
                     <Route path="/settings" element={<Settings />} />
-                    {/* Добавьте fallback маршрут для всех остальных путей */}
-                    <Route path="*" element={<HomePage />} />
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </div>
         </Router>

@@ -11,7 +11,7 @@
 }
 
 .settings-section {
-    background: white;
+    background: rgba(61, 108, 47, 0.563);
     padding: 2rem;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);

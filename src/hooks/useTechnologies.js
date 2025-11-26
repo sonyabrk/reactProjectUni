@@ -2,36 +2,41 @@
 import { useState, useEffect } from 'react';
 
 function useTechnologies() {
-    const [technologies, setTechnologies] = useState([]);
-
-    // Функция для загрузки технологий
-    const loadTechnologies = () => {
+    // Используем ленивую инициализацию для начальной загрузки
+    const [technologies, setTechnologies] = useState(() => {
         const saved = localStorage.getItem('technologies');
-        if (saved) {
-            // Используем setTimeout для асинхронного обновления состояния
-            setTimeout(() => {
-                setTechnologies(JSON.parse(saved));
-            }, 0);
-        }
-    };
+        return saved ? JSON.parse(saved) : [];
+    });
 
-    // Загружаем технологии при монтировании
+    // Слушаем изменения в localStorage только для синхронизации между вкладками
     useEffect(() => {
-        loadTechnologies();
-    }, []);
+        const handleStorageChange = (event) => {
+            if (event.key === 'technologies') {
+                const saved = localStorage.getItem('technologies');
+                if (saved) {
+                    // Используем requestAnimationFrame для асинхронного обновления
+                    requestAnimationFrame(() => {
+                        setTechnologies(JSON.parse(saved));
+                    });
+                }
+            }
+        };
 
-    // Слушаем изменения в localStorage
-    useEffect(() => {
-        const handleStorageChange = () => {
-            loadTechnologies();
+        const handleCustomEvent = () => {
+            const saved = localStorage.getItem('technologies');
+            if (saved) {
+                requestAnimationFrame(() => {
+                    setTechnologies(JSON.parse(saved));
+                });
+            }
         };
 
         window.addEventListener('storage', handleStorageChange);
-        window.addEventListener('technologiesUpdated', handleStorageChange);
+        window.addEventListener('technologiesUpdated', handleCustomEvent);
 
         return () => {
             window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('technologiesUpdated', handleStorageChange);
+            window.removeEventListener('technologiesUpdated', handleCustomEvent);
         };
     }, []);
 
@@ -53,6 +58,33 @@ function useTechnologies() {
         window.dispatchEvent(new Event('technologiesUpdated'));
     };
 
+    const updateTechnologyResources = (id, newResources) => {
+        const updated = technologies.map(tech =>
+            tech.id === id ? { ...tech, resources: newResources } : tech
+        );
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
+    };
+
+    const addTechnology = (techData) => {
+        const newTechnology = {
+            ...techData,
+            id: Date.now(),
+            status: techData.status || 'not-started',
+            notes: techData.notes || '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        const updated = [...technologies, newTechnology];
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
+        
+        return newTechnology;
+    };
+
     const markAllAsCompleted = () => {
         const updated = technologies.map(tech => ({ ...tech, status: 'completed' }));
         setTechnologies(updated);
@@ -71,9 +103,10 @@ function useTechnologies() {
         technologies,
         updateStatus,
         updateNotes,
+        updateTechnologyResources,
+        addTechnology,
         markAllAsCompleted,
-        resetAllStatuses,
-        loadTechnologies
+        resetAllStatuses
     };
 }
 

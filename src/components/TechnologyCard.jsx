@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom';
+import TechnologyResources from './TechnologyResources';
 import './TechnologyCard.css';
 
-function TechnologyCard({ technology, onStatusChange, onNotesChange }) {
+function TechnologyCard({ technology, onStatusChange, onNotesChange, onResourcesUpdate }) {
     const { id, title, description, status, notes } = technology;
 
     const handleCardClick = () => {
@@ -15,13 +17,19 @@ function TechnologyCard({ technology, onStatusChange, onNotesChange }) {
     };
 
     return (
-        <div className={`technology-card ${status}`} onClick={handleCardClick}>
+        <div className={`technology-card ${status}`}>
             <div className="card-content">
-                <h3 className="card-title">{title}</h3>
+                <div className="card-header">
+                    <h3 className="card-title">{title}</h3>
+                    <Link to={`/technology/${id}`} className="detail-link">
+                        Подробнее 
+                    </Link>
+                </div>
+                
                 <p className="card-description">{description}</p>
                 
                 <div className="notes-section">
-                    <h4>Мои заметки:</h4>
+                    <h4>Заметки:</h4>
                     <textarea
                         value={notes}
                         onChange={handleNotesChange}
@@ -34,10 +42,23 @@ function TechnologyCard({ technology, onStatusChange, onNotesChange }) {
                     </div>
                 </div>
 
-                <div className="card-status">
-                    <span className={`status-indicator ${status}`}>
-                        {getStatusText(status)}
-                    </span>
+                <TechnologyResources 
+                    technology={technology}
+                    onResourcesUpdate={onResourcesUpdate}
+                />
+
+                <div className="card-footer">
+                    <div className="card-status">
+                        <span className={`status-indicator ${status}`}>
+                            {getStatusText(status)}
+                        </span>
+                    </div>
+                    <button 
+                        className="status-toggle-btn"
+                        onClick={handleCardClick}
+                    >
+                        Сменить статус
+                    </button>
                 </div>
             </div>
         </div>
