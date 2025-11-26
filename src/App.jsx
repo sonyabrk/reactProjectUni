@@ -9,6 +9,8 @@ import ProgressBar from './components/ProgressBar';
 import useTechnologies from './hooks/useTechnologies';
 import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
+import TechnologyDetail from './pages/TechnologyDetail';
+import AddTechnology from './pages/AddTechnology';
 
 function HomePage() {
     const {
@@ -111,7 +113,7 @@ function HomePage() {
 
 function App() {
     return (
-        <Router basename="/reactProjectUni"> {/* Добавьте basename */}
+        <Router basename="/reactProjectUni">
             <div className="App">
                 <Navigation />
                 
@@ -122,6 +124,8 @@ function App() {
 
                 <Routes>
                     <Route path="/" element={<HomePage />} />
+                    <Route path="/technology/:techId" element={<TechnologyDetail />} />
+                    <Route path="/add-technology" element={<AddTechnology />} />
                     <Route path="/statistics" element={<Statistics />} />
                     <Route path="/settings" element={<Settings />} />
                     {/* Добавьте fallback маршрут для всех остальных путей */}

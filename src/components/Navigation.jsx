@@ -23,6 +23,14 @@ function Navigation() {
                 </li>
                 <li>
                     <Link 
+                        to="/add-technology" 
+                        className={location.pathname === '/add-technology' ? 'active' : ''}
+                    >
+                        Добавить технологию
+                    </Link>
+                </li>
+                <li>
+                    <Link 
                         to="/statistics" 
                         className={location.pathname === '/statistics' ? 'active' : ''}
                     >
