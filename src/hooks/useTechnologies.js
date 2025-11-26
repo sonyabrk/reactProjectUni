@@ -1,105 +1,70 @@
-import useLocalStorage from './useLocalStorage';
-
-const initialTechnologies = [
-    { 
-        id: 1, 
-        title: 'React компоненты', 
-        description: 'Изучение функциональных и классовых компонентов', 
-        status: 'not-started',
-        notes: '',
-        category: 'frontend'
-    },
-    { 
-        id: 2, 
-        title: 'State Management',
-        description: 'Работа с состоянием компонентов, использование useState и useContext', 
-        status: 'not-started',
-        notes: '',
-        category: 'frontend'
-    },
-    { 
-        id: 3, 
-        title: 'JSX синтаксис', 
-        description: 'Освоение синтаксиса JSX, работа с выражениями JavaScript в разметке', 
-        status: 'not-started',
-        notes: '',
-        category: 'frontend'
-    },
-    { 
-        id: 4, 
-        title: 'Node.js база', 
-        description: 'Основы серверного JavaScript', 
-        status: 'not-started',
-        notes: '',
-        category: 'backend'
-    },
-    { 
-        id: 5, 
-        title: 'Express Framework', 
-        description: 'Создание REST API с помощью Express', 
-        status: 'not-started',
-        notes: '',
-        category: 'backend'
-    },
-    { 
-        id: 6, 
-        title: 'Базы данных (PostreSQL)', 
-        description: 'Работа с базами данных (MongoDB, PostgreSQL, SQLite)', 
-        status: 'not-started',
-        notes: '',
-        category: 'backend'
-    }
-];
-
-// Добавляем версию данных
-const DATA_VERSION = '2.0';
+// src/hooks/useTechnologies.js
+import { useState, useEffect } from 'react';
 
 function useTechnologies() {
-    const [storage, setStorage] = useLocalStorage('tech_tracker_data', {
-        version: DATA_VERSION,
-        technologies: initialTechnologies
-    });
+    const [technologies, setTechnologies] = useState([]);
 
-    // Проверяем версию данных и мигрируем при необходимости
-    const technologies = storage.version === DATA_VERSION 
-        ? storage.technologies 
-        : initialTechnologies;
-
-    const setTechnologies = (newTechnologies) => {
-        setStorage({
-            version: DATA_VERSION,
-            technologies: newTechnologies
-        });
+    // Функция для загрузки технологий
+    const loadTechnologies = () => {
+        const saved = localStorage.getItem('technologies');
+        if (saved) {
+            // Используем setTimeout для асинхронного обновления состояния
+            setTimeout(() => {
+                setTechnologies(JSON.parse(saved));
+            }, 0);
+        }
     };
 
-    const updateStatus = (techId, newStatus) => {
-        setTechnologies(
-            technologies.map(tech =>
-                tech.id === techId ? { ...tech, status: newStatus } : tech
-            )
+    // Загружаем технологии при монтировании
+    useEffect(() => {
+        loadTechnologies();
+    }, []);
+
+    // Слушаем изменения в localStorage
+    useEffect(() => {
+        const handleStorageChange = () => {
+            loadTechnologies();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('technologiesUpdated', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('technologiesUpdated', handleStorageChange);
+        };
+    }, []);
+
+    const updateStatus = (id, newStatus) => {
+        const updated = technologies.map(tech =>
+            tech.id === id ? { ...tech, status: newStatus } : tech
         );
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
     };
 
-    const updateNotes = (techId, newNotes) => {
-        setTechnologies(
-            technologies.map(tech =>
-                tech.id === techId ? { ...tech, notes: newNotes } : tech
-            )
+    const updateNotes = (id, newNotes) => {
+        const updated = technologies.map(tech =>
+            tech.id === id ? { ...tech, notes: newNotes } : tech
         );
-    };
-
-    const calculateProgress = () => {
-        if (technologies.length === 0) return 0;
-        const completed = technologies.filter(tech => tech.status === 'completed').length;
-        return Math.round((completed / technologies.length) * 100);
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
     };
 
     const markAllAsCompleted = () => {
-        setTechnologies(technologies.map(tech => ({ ...tech, status: 'completed' })));
+        const updated = technologies.map(tech => ({ ...tech, status: 'completed' }));
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
     };
 
     const resetAllStatuses = () => {
-        setTechnologies(technologies.map(tech => ({ ...tech, status: 'not-started' })));
+        const updated = technologies.map(tech => ({ ...tech, status: 'not-started' }));
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
     };
 
     return {
@@ -108,7 +73,7 @@ function useTechnologies() {
         updateNotes,
         markAllAsCompleted,
         resetAllStatuses,
-        progress: calculateProgress()
+        loadTechnologies
     };
 }
 
