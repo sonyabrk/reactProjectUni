@@ -1,9 +1,19 @@
 import { useState } from 'react';
 import Modal from './Modal';
+import BulkStatusEdit from './BulkStatusEdit';
+import DataImportExport from './DataImportExport';
 import './QuickActions.css';
 
-function QuickActions({ markAllAsCompleted, resetAllStatuses, randomizeNextTechnology, technologies }) {
+function QuickActions({ 
+    markAllAsCompleted, 
+    resetAllStatuses, 
+    randomizeNextTechnology, 
+    technologies,
+    onBulkUpdate 
+}) {
     const [showExportModal, setShowExportModal] = useState(false);
+    const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+    const [showImportExportModal, setShowImportExportModal] = useState(false);
 
     const handleExport = () => {
         const data = {
@@ -12,7 +22,6 @@ function QuickActions({ markAllAsCompleted, resetAllStatuses, randomizeNextTechn
         };
         const dataStr = JSON.stringify(data, null, 2);
         
-        // Создаем Blob и ссылку для скачивания
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -24,6 +33,13 @@ function QuickActions({ markAllAsCompleted, resetAllStatuses, randomizeNextTechn
         URL.revokeObjectURL(url);
         
         setShowExportModal(true);
+    };
+
+    const handleBulkUpdate = (ids, newStatus) => {
+        if (onBulkUpdate) {
+            onBulkUpdate(ids, newStatus);
+        }
+        setShowBulkEditModal(false);
     };
 
     return (
@@ -39,11 +55,18 @@ function QuickActions({ markAllAsCompleted, resetAllStatuses, randomizeNextTechn
                 <button onClick={randomizeNextTechnology} className="btn btn-info">
                     Случайный выбор следующей технологии
                 </button>
+                <button onClick={() => setShowBulkEditModal(true)} className="btn btn-bulk">
+                    Массовое редактирование
+                </button>
                 <button onClick={handleExport} className="btn btn-export">
                     Экспорт данных
                 </button>
+                <button onClick={() => setShowImportExportModal(true)} className="btn btn-import">
+                    Импорт данных
+                </button>
             </div>
 
+            {/* Модальное окно экспорта */}
             <Modal
                 isOpen={showExportModal}
                 onClose={() => setShowExportModal(false)}
@@ -57,6 +80,29 @@ function QuickActions({ markAllAsCompleted, resetAllStatuses, randomizeNextTechn
                 >
                     Закрыть
                 </button>
+            </Modal>
+
+            {/* Модальное окно массового редактирования */}
+            <Modal
+                isOpen={showBulkEditModal}
+                onClose={() => setShowBulkEditModal(false)}
+                title="Массовое редактирование статусов"
+                size="large"
+            >
+                <BulkStatusEdit 
+                    technologies={technologies}
+                    onBulkUpdate={handleBulkUpdate}
+                />
+            </Modal>
+
+            {/* Модальное окно импорта/экспорта */}
+            <Modal
+                isOpen={showImportExportModal}
+                onClose={() => setShowImportExportModal(false)}
+                title="Импорт / экспорт данных"
+                size="large"
+            >
+                <DataImportExport />
             </Modal>
         </div>
     );

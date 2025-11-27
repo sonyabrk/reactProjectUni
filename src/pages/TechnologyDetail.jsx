@@ -110,15 +110,23 @@ function TechnologyDetail() {
         <div className="technology-detail-page">
             <div className="page-header">
                 <Link to="/" className="back-link">
-                    ← Назад к списку
+                    Назад к списку
                 </Link>
                 <h1>{technology.title}</h1>
-                <button 
-                    onClick={deleteTechnology}
-                    className="btn btn-danger"
-                >
-                    Удалить технологию
-                </button>
+                <div className="header-actions">
+                    <Link 
+                        to={`/technology/${techId}/edit`}
+                        className="btn btn-primary"
+                    >
+                        Редактировать
+                    </Link>
+                    <button 
+                        onClick={deleteTechnology}
+                        className="btn btn-danger"
+                    >
+                        Удалить
+                    </button>
+                </div>
             </div>
 
             <div className="technology-detail">

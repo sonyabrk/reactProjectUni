@@ -13,6 +13,8 @@ import TechnologyDetail from './pages/TechnologyDetail';
 import AddTechnology from './pages/AddTechnology';
 import NotFound from './pages/NotFound';
 import RoadmapImporter from './components/RoadmapImporter';
+import EditTechnology from './pages/EditTechnology';
+import DataImportExport from './components/DataImportExport';
 
 
 function HomePage() {
@@ -23,13 +25,14 @@ function HomePage() {
         markAllAsCompleted,
         resetAllStatuses,
         addTechnology,
-        updateTechnologyResources
+        updateTechnologyResources,
+        bulkUpdateStatus
     } = useTechnologies();
-
 
     const [filter, setFilter] = useState('all');
     const [apiSearchResults, setApiSearchResults] = useState(null);
     const [searchState, setSearchState] = useState({ loading: false, error: null });
+    const [showBulkEdit, setShowBulkEdit] = useState(false);
 
     const randomizeNextTechnology = () => {
         const notStarted = technologies.filter(tech => tech.status === 'not-started');
@@ -77,7 +80,20 @@ function HomePage() {
                 resetAllStatuses={resetAllStatuses}
                 randomizeNextTechnology={randomizeNextTechnology}
                 technologies={technologies}
+                onShowBulkEdit={() => setShowBulkEdit(!showBulkEdit)}
+                showBulkEdit={showBulkEdit}
             />
+
+            {/* Компонент массового редактирования */}
+            {showBulkEdit && (
+                <BulkStatusEdit 
+                    technologies={technologies}
+                    onBulkUpdate={bulkUpdateStatus}
+                />
+            )}
+
+            {/* Компонент импорта/экспорта */}
+            <DataImportExport />
 
             <TechnologySearch 
                 onSearchResults={handleSearchResults}
@@ -200,6 +216,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/technology/:techId" element={<TechnologyDetail />} />
+                    <Route path="/technology/:techId/edit" element={<EditTechnology />} />
                     <Route path="/add-technology" element={<AddTechnology />} />
                     <Route path="/statistics" element={<Statistics />} />
                     <Route path="/settings" element={<Settings />} />

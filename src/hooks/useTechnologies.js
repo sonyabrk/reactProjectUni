@@ -2,19 +2,16 @@
 import { useState, useEffect } from 'react';
 
 function useTechnologies() {
-    // Используем ленивую инициализацию для начальной загрузки
     const [technologies, setTechnologies] = useState(() => {
         const saved = localStorage.getItem('technologies');
         return saved ? JSON.parse(saved) : [];
     });
 
-    // Слушаем изменения в localStorage только для синхронизации между вкладками
     useEffect(() => {
         const handleStorageChange = (event) => {
             if (event.key === 'technologies') {
                 const saved = localStorage.getItem('technologies');
                 if (saved) {
-                    // Используем requestAnimationFrame для асинхронного обновления
                     requestAnimationFrame(() => {
                         setTechnologies(JSON.parse(saved));
                     });
@@ -73,6 +70,7 @@ function useTechnologies() {
             id: Date.now(),
             status: techData.status || 'not-started',
             notes: techData.notes || '',
+            resources: techData.resources || [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -83,6 +81,31 @@ function useTechnologies() {
         window.dispatchEvent(new Event('technologiesUpdated'));
         
         return newTechnology;
+    };
+
+    const updateTechnology = (id, updatedTech) => {
+        const updated = technologies.map(tech =>
+            tech.id === id ? { ...tech, ...updatedTech, updatedAt: new Date().toISOString() } : tech
+        );
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
+    };
+
+    const deleteTechnology = (id) => {
+        const updated = technologies.filter(tech => tech.id !== id);
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
+    };
+
+    const bulkUpdateStatus = (ids, newStatus) => {
+        const updated = technologies.map(tech =>
+            ids.includes(tech.id) ? { ...tech, status: newStatus } : tech
+        );
+        setTechnologies(updated);
+        localStorage.setItem('technologies', JSON.stringify(updated));
+        window.dispatchEvent(new Event('technologiesUpdated'));
     };
 
     const markAllAsCompleted = () => {
@@ -105,6 +128,9 @@ function useTechnologies() {
         updateNotes,
         updateTechnologyResources,
         addTechnology,
+        updateTechnology,
+        deleteTechnology,
+        bulkUpdateStatus,
         markAllAsCompleted,
         resetAllStatuses
     };
