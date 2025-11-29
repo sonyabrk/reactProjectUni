@@ -1,6 +1,10 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; 
 import { useState } from 'react';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+// Импорты компонентов
 import Navigation from './components/Navigation';
 import ProgressHeader from './components/ProgressHeader';
 import TechnologyCard from './components/TechnologyCard';
@@ -16,6 +20,11 @@ import RoadmapImporter from './components/RoadmapImporter';
 import EditTechnology from './pages/EditTechnology';
 import DataImportExport from './components/DataImportExport';
 
+// Новые импорты для Material-UI
+import Notification from './components/Notification';
+import useNotification from './hooks/useNotification';
+import useTheme from './hooks/useTheme';
+import { Box, Container, useMediaQuery } from '@mui/material';
 
 function HomePage() {
     const {
@@ -26,8 +35,13 @@ function HomePage() {
         resetAllStatuses,
         addTechnology,
         updateTechnologyResources,
-        bulkUpdateStatus
+        bulkUpdateStatus 
     } = useTechnologies();
+
+    const { showSuccess, showError, showInfo, notification, hideNotification } = useNotification();
+    const { theme } = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
     const [filter, setFilter] = useState('all');
     const [apiSearchResults, setApiSearchResults] = useState(null);
@@ -39,28 +53,40 @@ function HomePage() {
         if (notStarted.length > 0) {
             const randomTech = notStarted[Math.floor(Math.random() * notStarted.length)];
             updateStatus(randomTech.id, 'in-progress');
+            showSuccess(`Технология "${randomTech.title}" начата!`);
+        } else {
+            showInfo('Все технологии уже начаты или завершены!');
         }
     };
 
     // Функция для обработки результатов поиска из API
     const handleSearchResults = (results) => {
         setApiSearchResults(results);
+        if (results && results.length > 0) {
+            showSuccess(`Найдено ${results.length} технологий`);
+        } else if (results && results.length === 0) {
+            showInfo('Технологии по вашему запросу не найдены');
+        }
     };
 
     // Функция для обработки состояния поиска
     const handleSearchStateChange = (state) => {
         setSearchState(state);
+        if (state.error) {
+            showError(state.error);
+        }
     };
 
     // Функция для добавления технологии из поиска
     const handleAddFromSearch = (tech) => {
         addTechnology(tech);
-        alert(`Технология "${tech.title}" добавлена в ваш трекер!`);
+        showSuccess(`Технология "${tech.title}" добавлена в ваш трекер!`);
     };
 
     // Функция для обновления ресурсов технологии
     const handleResourcesUpdate = (techId, resources) => {
         updateTechnologyResources(techId, resources);
+        showSuccess('Ресурсы технологии обновлены!');
     };
 
     // Определяем какие технологии показывать
@@ -71,159 +97,182 @@ function HomePage() {
         return matchesFilter;
     });
 
+    // Функции для быстрых действий с уведомлениями
+    const handleMarkAllCompleted = () => {
+        markAllAsCompleted();
+        showSuccess('Все технологии отмечены как завершенные!');
+    };
+
+    const handleResetAllStatuses = () => {
+        resetAllStatuses();
+        showInfo('Статусы всех технологий сброшены!');
+    };
+
     return (
-        <div>
+        <Box sx={{ pb: 2 }}>
             <ProgressHeader technologies={technologies} />
             
             <QuickActions 
-                markAllAsCompleted={markAllAsCompleted}
-                resetAllStatuses={resetAllStatuses}
+                markAllAsCompleted={handleMarkAllCompleted}
+                resetAllStatuses={handleResetAllStatuses}
                 randomizeNextTechnology={randomizeNextTechnology}
                 technologies={technologies}
                 onShowBulkEdit={() => setShowBulkEdit(!showBulkEdit)}
                 showBulkEdit={showBulkEdit}
+                bulkUpdateStatus={bulkUpdateStatus}
             />
 
-            {/* Компонент массового редактирования */}
-            {showBulkEdit && (
-                <BulkStatusEdit 
-                    technologies={technologies}
-                    onBulkUpdate={bulkUpdateStatus}
+            <Container maxWidth="xl" sx={{ mt: 2 }}>
+                {/* Компонент импорта/экспорта */}
+                <DataImportExport />
+
+                <TechnologySearch 
+                    onSearchResults={handleSearchResults}
+                    onSearchStateChange={handleSearchStateChange}
                 />
-            )}
 
-            {/* Компонент импорта/экспорта */}
-            <DataImportExport />
+                <RoadmapImporter />
+                
+                {/* Показываем результаты поиска или локальные технологии */}
+                <Box className="search-results-info" sx={{ mb: 2 }}>
+                    {apiSearchResults && (
+                        <Box className="api-results-header" sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <h3>Результаты поиска в базе знаний</h3>
+                            <button 
+                                onClick={() => setApiSearchResults(null)}
+                                className="btn btn-secondary"
+                            >
+                                ← Вернуться к моим технологиям
+                            </button>
+                        </Box>
+                    )}
+                    
+                    {searchState.loading && (
+                        <Box className="search-loading" sx={{ textAlign: 'center', py: 2 }}>
+                            Поиск технологий...
+                        </Box>
+                    )}
+                </Box>
 
-            <TechnologySearch 
-                onSearchResults={handleSearchResults}
-                onSearchStateChange={handleSearchStateChange}
-            />
-
-            <RoadmapImporter />
-            {/* Показываем результаты поиска или локальные технологии */}
-            <div className="search-results-info">
-                {apiSearchResults && (
-                    <div className="api-results-header">
-                        <h3> Результаты поиска в базе знаний</h3>
+                {/* Фильтры с адаптивным дизайном */}
+                <Box className="filters" sx={{ 
+                    display: 'flex', 
+                    gap: 1, 
+                    mb: 3,
+                    flexWrap: isMobile ? 'wrap' : 'nowrap',
+                    justifyContent: isMobile ? 'center' : 'flex-start'
+                }}>
+                    {['all', 'not-started', 'in-progress', 'completed'].map(filterType => (
                         <button 
-                            onClick={() => setApiSearchResults(null)}
-                            className="btn btn-secondary"
+                            key={filterType}
+                            className={filter === filterType ? 'active' : ''} 
+                            onClick={() => setFilter(filterType)}
+                            style={{
+                                flex: isMobile ? '1 1 calc(50% - 8px)' : 'none',
+                                minWidth: isMobile ? '120px' : 'auto'
+                            }}
                         >
-                            ← Вернуться к моим технологиям
+                            {filterType === 'all' && 'Все'}
+                            {filterType === 'not-started' && 'Не начатые'}
+                            {filterType === 'in-progress' && 'В процессе'}
+                            {filterType === 'completed' && 'Завершенные'}
                         </button>
-                    </div>
-                )}
-                
-                {searchState.loading && (
-                    <div className="search-loading">
-                         Поиск технологий...
-                    </div>
-                )}
-                
-                {searchState.error && (
-                    <div className="search-error-global">
-                         {searchState.error} !
-                    </div>
-                )}
-            </div>
-
-            <div className="filters">
-                <button 
-                    className={filter === 'all' ? 'active' : ''} 
-                    onClick={() => setFilter('all')}
-                >
-                    Все
-                </button>
-                <button 
-                    className={filter === 'not-started' ? 'active' : ''} 
-                    onClick={() => setFilter('not-started')}
-                >
-                    Не начатые
-                </button>
-                <button 
-                    className={filter === 'in-progress' ? 'active' : ''} 
-                    onClick={() => setFilter('in-progress')}
-                >
-                    В процессе
-                </button>
-                <button 
-                    className={filter === 'completed' ? 'active' : ''} 
-                    onClick={() => setFilter('completed')}
-                >
-                    Завершенные
-                </button>
-            </div>
-
-            <main className="technologies-container">
-                <h2>
-                    {apiSearchResults ? 'Найденные технологии' : 'Мои технологии'} 
-                    ({filteredTechnologies.length})
-                </h2>
-                
-                <div className="technologies-grid">
-                    {filteredTechnologies.map(tech => (
-                        <div key={tech.id} className="technology-card-wrapper">
-                            <TechnologyCard
-                                technology={tech}
-                                onStatusChange={updateStatus}
-                                onNotesChange={updateNotes}
-                                onResourcesUpdate={handleResourcesUpdate}
-                            />
-                            {apiSearchResults && (
-                                <button 
-                                    onClick={() => handleAddFromSearch(tech)}
-                                    className="btn-add-from-search"
-                                >
-                                     Добавить в трекер
-                                </button>
-                            )}
-                        </div>
                     ))}
-                </div>
+                </Box>
 
-                {filteredTechnologies.length === 0 && !searchState.loading && (
-                    <div className="empty-state">
-                        <p> Технологии не найдены</p>
-                        {apiSearchResults ? (
-                            <p>Попробуйте изменить поисковый запрос</p>
-                        ) : (
-                            <>
-                                <p>Добавьте технологии вручную через страницу "Добавить технологию"</p>
-                                <Link to="/add-technology" className="btn btn-primary">
-                                     Добавить технологию
-                                </Link>
-                            </>
-                        )}
-                    </div>
-                )}
-            </main>
-        </div>
+                <main className="technologies-container">
+                    <h2>
+                        {apiSearchResults ? 'Найденные технологии' : 'Мои технологии'} 
+                        ({filteredTechnologies.length})
+                    </h2>
+                    
+                    <Box className="technologies-grid" sx={{
+                        display: 'grid',
+                        gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+                        gap: 2
+                    }}>
+                        {filteredTechnologies.map(tech => (
+                            <Box key={tech.id} className="technology-card-wrapper">
+                                <TechnologyCard
+                                    technology={tech}
+                                    onStatusChange={updateStatus}
+                                    onNotesChange={updateNotes}
+                                    onResourcesUpdate={handleResourcesUpdate}
+                                />
+                                {apiSearchResults && (
+                                    <button 
+                                        onClick={() => handleAddFromSearch(tech)}
+                                        className="btn-add-from-search"
+                                    >
+                                        Добавить в трекер
+                                    </button>
+                                )}
+                            </Box>
+                        ))}
+                    </Box>
+
+                    {filteredTechnologies.length === 0 && !searchState.loading && (
+                        <Box className="empty-state" sx={{ textAlign: 'center', py: 4 }}>
+                            <p>Технологии не найдены</p>
+                            {apiSearchResults ? (
+                                <p>Попробуйте изменить поисковый запрос</p>
+                            ) : (
+                                <>
+                                    <p>Добавьте технологии вручную через страницу "Добавить технологию"</p>
+                                    <Link to="/add-technology" className="btn btn-primary">
+                                        Добавить технологию
+                                    </Link>
+                                </>
+                            )}
+                        </Box>
+                    )}
+                </main>
+            </Container>
+
+            {/* Компонент уведомлений */}
+            <Notification
+                open={notification.open}
+                message={notification.message}
+                type={notification.type}
+                duration={notification.duration}
+                onClose={hideNotification}
+                action={notification.action}
+            />
+        </Box>
     );
 }
 
 function App() {
-    return (
-        <Router basename="/reactProjectUni">
-            <div className="App">
-                <Navigation />
-                
-                <header className="App-header">
-                    <h1> Трекер изучения технологий</h1>
-                    <p>Прогресс в изучении React и связанных технологий</p>
-                </header>
+    const { theme, mode, toggleTheme, setTheme } = useTheme();
 
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/technology/:techId" element={<TechnologyDetail />} />
-                    <Route path="/technology/:techId/edit" element={<EditTechnology />} />
-                    <Route path="/add-technology" element={<AddTechnology />} />
-                    <Route path="/statistics" element={<Statistics />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="*" element={<NotFound />} />
-                </Routes>
-            </div>
-        </Router>
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Router basename="/reactProjectUni">
+                <div className="App">
+                    <Navigation 
+                        themeMode={mode}
+                        onToggleTheme={toggleTheme}
+                        onSetTheme={setTheme}
+                    />
+                    
+                    <header className="App-header">
+                        <h1>Трекер изучения технологий</h1>
+                        <p>Прогресс в изучении React и связанных технологий</p>
+                    </header>
+
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/technology/:techId" element={<TechnologyDetail />} />
+                        <Route path="/technology/:techId/edit" element={<EditTechnology />} />
+                        <Route path="/add-technology" element={<AddTechnology />} />
+                        <Route path="/statistics" element={<Statistics />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="*" element={<NotFound />} />
+                    </Routes>
+                </div>
+            </Router>
+        </ThemeProvider>
     );
 }
 

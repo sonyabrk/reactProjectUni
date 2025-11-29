@@ -51,7 +51,7 @@
     font-size: 0.9em;
     opacity: 0.9;
     font-weight: 500;
-    color: white; /* Явно задаем белый цвет */
+    color: white; 
 }
 
 .progress-bars-section {
@@ -75,4 +75,8 @@
 
 .category-progress:last-child {
     margin-bottom: 0;
+}
+
+.progress-label{
+    color: black;
 }

@@ -1,11 +1,35 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Switch,
+  Button,
+  Alert,
+  Grid,
+  FormControlLabel // Добавляем этот импорт
+} from '@mui/material';
+import {
+  Brightness4 as DarkIcon,
+  Brightness7 as LightIcon,
+  Settings as SettingsIcon,
+  Backup as BackupIcon,
+  Restore as RestoreIcon,
+  Dangerous as DangerousIcon
+} from '@mui/icons-material';
 import Modal from '../components/Modal';
+import useNotification from '../hooks/useNotification';
 import './Settings.css';
 
 function Settings() {
     const [settings, setSettings] = useState(() => {
-        // Используем ленивую инициализацию вместо useEffect
         const savedSettings = localStorage.getItem('appSettings');
         return savedSettings 
             ? JSON.parse(savedSettings)
@@ -19,11 +43,13 @@ function Settings() {
     
     const [showResetModal, setShowResetModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
+    const { showSuccess, showError } = useNotification();
 
     const updateSetting = (key, value) => {
         const newSettings = { ...settings, [key]: value };
         setSettings(newSettings);
         localStorage.setItem('appSettings', JSON.stringify(newSettings));
+        showSuccess('Настройка сохранена!');
     };
 
     const resetAllData = () => {
@@ -36,31 +62,37 @@ function Settings() {
             autoSave: true
         });
         setShowResetModal(false);
-        alert('Все данные были сброшены!');
+        showSuccess('Все данные были сброшены!');
     };
 
     const exportData = () => {
-        const technologies = localStorage.getItem('technologies');
-        const appSettings = localStorage.getItem('appSettings');
-        
-        const exportData = {
-            exportedAt: new Date().toISOString(),
-            technologies: technologies ? JSON.parse(technologies) : [],
-            settings: appSettings ? JSON.parse(appSettings) : {}
-        };
+        try {
+            const technologies = localStorage.getItem('technologies');
+            const appSettings = localStorage.getItem('appSettings');
+            
+            const exportData = {
+                exportedAt: new Date().toISOString(),
+                technologies: technologies ? JSON.parse(technologies) : [],
+                settings: appSettings ? JSON.parse(appSettings) : {}
+            };
 
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `tech-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        setShowExportModal(true);
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `tech-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            setShowExportModal(true);
+            showSuccess('Данные успешно экспортированы!');
+        } catch (error) {
+            console.log(error);
+            showError('Ошибка при экспорте данных!');
+        }
     };
 
     const importData = (event) => {
@@ -81,126 +113,180 @@ function Settings() {
                     setSettings(data.settings);
                 }
                 
-                alert('Данные успешно импортированы!');
+                showSuccess('Данные успешно импортированы!');
                 event.target.value = ''; 
             } catch (error) {
-                alert('Ошибка при импорте данных: неверный формат файла');
                 console.log(error);
+                showError('Ошибка при импорте данных: неверный формат файла');
             }
         };
         reader.readAsText(file);
     };
 
     return (
-        <div className="settings-page">
-            <div className="page-header">
-                <h1>Настройки приложения</h1>
-                <p>Управление настройками и данными трекера</p>
-            </div>
+        <Container maxWidth="md" sx={{ py: 4 }}>
+            <Box className="settings-page">
+                <Box className="page-header" sx={{ mb: 4, textAlign: 'center' }}>
+                    <SettingsIcon sx={{ fontSize: 48, mb: 2, color: 'primary.main' }} />
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Настройки приложения
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                        Управление настройками и данными трекера
+                    </Typography>
+                </Box>
 
-            <div className="settings-sections">
-                {/* Настройки внешнего вида */}
-                <section className="settings-section">
-                    <h2>Внешний вид</h2>
-                    <div className="setting-group">
-                        <label>Тема оформления:</label>
-                        <select 
-                            value={settings.theme}
-                            onChange={(e) => updateSetting('theme', e.target.value)}
-                        >
-                            <option value="light">Светлая</option>
-                            <option value="dark">Темная</option>
-                            <option value="auto">Авто</option>
-                        </select>
-                    </div>
-                    
-                    <div className="setting-group">
-                        <label>Язык интерфейса:</label>
-                        <select 
-                            value={settings.language}
-                            onChange={(e) => updateSetting('language', e.target.value)}
-                        >
-                            <option value="ru">Русский</option>
-                            <option value="en">English</option>
-                        </select>
-                    </div>
-                </section>
+                <Grid container spacing={3}>
+                    {/* Настройки внешнего вида */}
+                    <Grid item xs={12} md={6}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom>
+                                    Внешний вид
+                                </Typography>
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel>Тема оформления</InputLabel>
+                                    <Select 
+                                        value={settings.theme}
+                                        onChange={(e) => updateSetting('theme', e.target.value)}
+                                        label="Тема оформления"
+                                    >
+                                        <MenuItem value="light">
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <LightIcon fontSize="small" />
+                                                Светлая
+                                            </Box>
+                                        </MenuItem>
+                                        <MenuItem value="dark">
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <DarkIcon fontSize="small" />
+                                                Темная
+                                            </Box>
+                                        </MenuItem>
+                                        <MenuItem value="auto">Авто</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                
+                                <FormControl fullWidth>
+                                    <InputLabel>Язык интерфейса</InputLabel>
+                                    <Select 
+                                        value={settings.language}
+                                        onChange={(e) => updateSetting('language', e.target.value)}
+                                        label="Язык интерфейса"
+                                    >
+                                        <MenuItem value="ru">Русский</MenuItem>
+                                        <MenuItem value="en">English</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </CardContent>
+                        </Card>
+                    </Grid>
 
-                {/* Настройки уведомлений */}
-                <section className="settings-section">
-                    <h2>Уведомления</h2>
-                    <div className="setting-group checkbox-group">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.notifications}
-                                onChange={(e) => updateSetting('notifications', e.target.checked)}
-                            />
-                            Включить уведомления
-                        </label>
-                    </div>
-                    
-                    <div className="setting-group checkbox-group">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.autoSave}
-                                onChange={(e) => updateSetting('autoSave', e.target.checked)}
-                            />
-                            Автосохранение изменений
-                        </label>
-                    </div>
-                </section>
+                    {/* Настройки уведомлений */}
+                    <Grid item xs={12} md={6}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom>
+                                    Уведомления
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={settings.notifications}
+                                                onChange={(e) => updateSetting('notifications', e.target.checked)}
+                                            />
+                                        }
+                                        label="Включить уведомления"
+                                    />
+                                    
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={settings.autoSave}
+                                                onChange={(e) => updateSetting('autoSave', e.target.checked)}
+                                            />
+                                        }
+                                        label="Автосохранение изменений"
+                                    />
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
 
-                {/* Управление данными */}
-                <section className="settings-section">
-                    <h2>Управление данными</h2>
-                    <div className="data-actions">
-                        <button 
-                            className="btn btn-export"
-                            onClick={exportData}
-                        >
-                            Экспорт данных
-                        </button>
-                        
-                        <div className="import-group">
-                            <label htmlFor="import-file" className="btn btn-import">
-                                Импорт данных
-                            </label>
-                            <input
-                                id="import-file"
-                                type="file"
-                                accept=".json"
-                                onChange={importData}
-                                style={{ display: 'none' }}
-                            />
-                        </div>
-                        
-                        <button 
-                            className="btn btn-danger"
-                            onClick={() => setShowResetModal(true)}
-                        >
-                            Сбросить все данные
-                        </button>
-                    </div>
-                </section>
+                    {/* Управление данными */}
+                    <Grid item xs={12}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom>
+                                    Управление данными
+                                </Typography>
+                                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                    <Button 
+                                        variant="outlined"
+                                        startIcon={<BackupIcon />}
+                                        onClick={exportData}
+                                    >
+                                        Экспорт данных
+                                    </Button>
+                                    
+                                    <Button 
+                                        variant="outlined"
+                                        component="label"
+                                        startIcon={<RestoreIcon />}
+                                    >
+                                        Импорт данных
+                                        <input
+                                            type="file"
+                                            accept=".json"
+                                            onChange={importData}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </Button>
+                                    
+                                    <Button 
+                                        variant="outlined"
+                                        color="error"
+                                        startIcon={<DangerousIcon />}
+                                        onClick={() => setShowResetModal(true)}
+                                    >
+                                        Сбросить все данные
+                                    </Button>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
 
-                {/* Информация о приложении */}
-                <section className="settings-section">
-                    <h2>О приложении</h2>
-                    <div className="app-info">
-                        <p><strong>Версия:</strong> 1.0.0</p>
-                        <p><strong>Разработчик:</strong> Трекер технологий</p>
-                        <p><strong>Описание:</strong> Приложение для отслеживания прогресса изучения технологий</p>
-                    </div>
-                </section>
-            </div>
+                    {/* Информация о приложении */}
+                    <Grid item xs={12}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom>
+                                    О приложении
+                                </Typography>
+                                <Box className="app-info">
+                                    <Typography><strong>Версия:</strong> 1.0.0</Typography>
+                                    <Typography><strong>Разработчик:</strong> Трекер технологий</Typography>
+                                    <Typography>
+                                        <strong>Описание:</strong> Приложение для отслеживания прогресса изучения технологий
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
 
-            <div className="settings-actions">
-                <Link to="/" className="btn btn-primary">
-                    ← Назад к трекеру
-                </Link>
-            </div>
+                <Box className="settings-actions" sx={{ mt: 4, textAlign: 'center' }}>
+                    <Button 
+                        component={Link} 
+                        to="/" 
+                        variant="contained"
+                        size="large"
+                    >
+                        ← Назад к трекеру
+                    </Button>
+                </Box>
+            </Box>
 
             {/* Модальное окно сброса данных */}
             <Modal
@@ -208,26 +294,29 @@ function Settings() {
                 onClose={() => setShowResetModal(false)}
                 title="Сброс всех данных"
             >
-                <div className="reset-modal-content">
-                    <p>Вы уверены, что хотите сбросить все данные?</p>
-                    <p className="warning-text">
+                <Box className="reset-modal-content">
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        Вы уверены, что хотите сбросить все данные?
+                    </Alert>
+                    <Typography variant="body2" color="error" sx={{ mb: 3 }}>
                         Это действие невозможно отменить. Все ваши технологии, прогресс и настройки будут удалены.
-                    </p>
-                    <div className="modal-actions">
-                        <button 
-                            className="btn btn-danger"
+                    </Typography>
+                    <Box className="modal-actions" sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <Button 
+                            variant="contained"
+                            color="error"
                             onClick={resetAllData}
                         >
                             Да, сбросить всё
-                        </button>
-                        <button 
-                            className="btn btn-secondary"
+                        </Button>
+                        <Button 
+                            variant="outlined"
                             onClick={() => setShowResetModal(false)}
                         >
                             Отмена
-                        </button>
-                    </div>
-                </div>
+                        </Button>
+                    </Box>
+                </Box>
             </Modal>
 
             {/* Модальное окно экспорта */}
@@ -236,18 +325,23 @@ function Settings() {
                 onClose={() => setShowExportModal(false)}
                 title="Экспорт завершен"
             >
-                <div className="export-modal-content">
-                    <p>Данные успешно экспортированы!</p>
-                    <p>Файл с резервной копией был скачан на ваше устройство.</p>
-                    <button 
-                        className="btn btn-primary"
+                <Box className="export-modal-content">
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                        Данные успешно экспортированы!
+                    </Alert>
+                    <Typography variant="body2" sx={{ mb: 3 }}>
+                        Файл с резервной копией был скачан на ваше устройство.
+                    </Typography>
+                    <Button 
+                        variant="contained"
                         onClick={() => setShowExportModal(false)}
+                        sx={{ width: '100%' }}
                     >
                         Закрыть
-                    </button>
-                </div>
+                    </Button>
+                </Box>
             </Modal>
-        </div>
+        </Container>
     );
 }
 
