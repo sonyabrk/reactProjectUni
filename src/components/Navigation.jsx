@@ -13,7 +13,8 @@ import {
     MenuItem,
     ListItemIcon,
     ListItemText,
-    Divider
+    Divider,
+    Avatar
 } from '@mui/material';
 import {
     Brightness4 as DarkIcon,
@@ -22,13 +23,16 @@ import {
     Home as HomeIcon,
     Add as AddIcon,
     Analytics as AnalyticsIcon,
-    Settings as SettingsIcon
+    Settings as SettingsIcon,
+    Login as LoginIcon,
+    Logout as LogoutIcon,
+    AccountCircle
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import './Navigation.css';
 
-function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
+function Navigation({ themeMode, onToggleTheme, onSetTheme, isLoggedIn, username, onLogout }) {
     const location = useLocation();
     const navigate = useNavigate();
     const theme = useTheme();
@@ -36,10 +40,10 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
     const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
 
     const navItems = [
-        { path: '/', label: 'Главная', icon: <HomeIcon /> },
-        { path: '/add-technology', label: 'Добавить технологию', icon: <AddIcon /> },
-        { path: '/statistics', label: 'Статистика', icon: <AnalyticsIcon /> },
-        { path: '/settings', label: 'Настройки', icon: <SettingsIcon /> }
+        { path: '/', label: 'Главная', icon: <HomeIcon />, show: true },
+        { path: '/add-technology', label: 'Добавить технологию', icon: <AddIcon />, show: isLoggedIn },
+        { path: '/statistics', label: 'Статистика', icon: <AnalyticsIcon />, show: isLoggedIn },
+        { path: '/settings', label: 'Настройки', icon: <SettingsIcon />, show: isLoggedIn }
     ];
 
     const handleMobileMenuOpen = (event) => {
@@ -55,9 +59,17 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
         handleMobileMenuClose();
     };
 
+    const handleLogoutClick = () => {
+        onLogout();
+        handleMobileMenuClose();
+        navigate('/login');
+    };
+
     const isActive = (path) => {
         return location.pathname === path;
     };
+
+    const filteredNavItems = navItems.filter(item => item.show);
 
     return (
         <AppBar position="static" sx={{ mb: 2 }}>
@@ -76,7 +88,7 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
                         alignItems: 'center'
                     }}
                 >
-                    TechTracker
+                    Трекер технологий
                 </Typography>
 
                 {/* Десктопное меню */}
@@ -85,7 +97,7 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
                     flexGrow: 1,
                     gap: 1
                 }}>
-                    {navItems.map((item) => (
+                    {filteredNavItems.map((item) => (
                         <Button
                             key={item.path}
                             color="inherit"
@@ -108,6 +120,38 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* Авторизация для десктопа */}
+                    {!isMobile && (
+                        isLoggedIn ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
+                                <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+                                    {username ? username.charAt(0).toUpperCase() : 'U'}
+                                </Avatar>
+                                <Typography variant="body2" sx={{ color: 'white' }}>
+                                    {username}
+                                </Typography>
+                                <IconButton 
+                                    color="inherit" 
+                                    onClick={handleLogoutClick}
+                                    size="small"
+                                    title="Выйти"
+                                >
+                                    <LogoutIcon />
+                                </IconButton>
+                            </Box>
+                        ) : (
+                            <Button 
+                                color="inherit" 
+                                component={Link}
+                                to="/login"
+                                startIcon={<LoginIcon />}
+                                sx={{ mr: 2 }}
+                            >
+                                Войти
+                            </Button>
+                        )
+                    )}
+
                     {/* Переключатель темы */}
                     <IconButton 
                         color="inherit" 
@@ -118,23 +162,25 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
                         {themeMode === 'light' ? <DarkIcon /> : <LightIcon />}
                     </IconButton>
                     
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={themeMode === 'dark'}
-                                onChange={onToggleTheme}
-                                color="default"
-                            />
-                        }
-                        label={themeMode === 'dark' ? 'Тёмная' : 'Светлая'}
-                        sx={{ 
-                            color: 'white', 
-                            display: isMobile ? 'none' : 'flex',
-                            '& .MuiFormControlLabel-label': {
-                                fontSize: '0.875rem'
+                    {!isMobile && (
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={themeMode === 'dark'}
+                                    onChange={onToggleTheme}
+                                    color="default"
+                                />
                             }
-                        }}
-                    />
+                            label={themeMode === 'dark' ? 'Тёмная' : 'Светлая'}
+                            sx={{ 
+                                color: 'white', 
+                                display: 'flex',
+                                '& .MuiFormControlLabel-label': {
+                                    fontSize: '0.875rem'
+                                }
+                            }}
+                        />
+                    )}
 
                     {/* Мобильное меню */}
                     {isMobile && (
@@ -168,7 +214,7 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
                                     'aria-labelledby': 'mobile-menu',
                                 }}
                             >
-                                {navItems.map((item) => (
+                                {filteredNavItems.map((item) => (
                                     <MenuItem
                                         key={item.path}
                                         onClick={() => handleNavigation(item.path)}
@@ -192,6 +238,36 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme }) {
                                         />
                                     </MenuItem>
                                 ))}
+                                
+                                <Divider sx={{ my: 1 }} />
+                                
+                                {/* Авторизация для мобильной версии */}
+                                {isLoggedIn ? (
+                                    <>
+                                        <MenuItem disabled>
+                                            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                                                <AccountCircle />
+                                            </ListItemIcon>
+                                            <ListItemText 
+                                                primary="Пользователь" 
+                                                secondary={username}
+                                            />
+                                        </MenuItem>
+                                        <MenuItem onClick={handleLogoutClick}>
+                                            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                                                <LogoutIcon />
+                                            </ListItemIcon>
+                                            <ListItemText primary="Выйти" />
+                                        </MenuItem>
+                                    </>
+                                ) : (
+                                    <MenuItem component={Link} to="/login">
+                                        <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                                            <LoginIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Войти" />
+                                    </MenuItem>
+                                )}
                                 
                                 <Divider sx={{ my: 1 }} />
                                 

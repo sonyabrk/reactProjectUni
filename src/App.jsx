@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; 
-import { useState } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
+import { useState, useMemo, useCallback } from 'react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
 // Импорты компонентов
@@ -19,13 +19,143 @@ import NotFound from './pages/NotFound';
 import RoadmapImporter from './components/RoadmapImporter';
 import EditTechnology from './pages/EditTechnology';
 import DataImportExport from './components/DataImportExport';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Новые импорты для Material-UI
 import Notification from './components/Notification';
 import useNotification from './hooks/useNotification';
-import useTheme from './hooks/useTheme';
 import { Box, Container, useMediaQuery } from '@mui/material';
 
+// Создаем кастомный хук useAuth
+const useAuth = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState(() => {
+        return localStorage.getItem('isLoggedIn') === 'true';
+    });
+    
+    const [username, setUsername] = useState(() => {
+        return localStorage.getItem('username') || '';
+    });
+
+    const login = useCallback((user) => {
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', user);
+        setIsLoggedIn(true);
+        setUsername(user);
+    }, []);
+
+    const logout = useCallback(() => {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        setIsLoggedIn(false);
+        setUsername('');
+    }, []);
+
+    return {
+        isLoggedIn,
+        username,
+        login,
+        logout
+    };
+};
+
+// Создаем кастомный хук useAppTheme
+const useAppTheme = () => {
+    const [mode, setMode] = useState(() => {
+        const savedMode = localStorage.getItem('themeMode');
+        return savedMode || 'light';
+    });
+
+    const theme = useMemo(() => {
+        return createTheme({
+            palette: {
+                mode,
+                primary: {
+                    main: mode === 'light' ? '#1976d2' : '#90caf9',
+                    light: mode === 'light' ? '#42a5f5' : '#e3f2fd',
+                    dark: mode === 'light' ? '#1565c0' : '#42a5f5',
+                },
+                secondary: {
+                    main: mode === 'light' ? '#dc004e' : '#f48fb1',
+                    light: mode === 'light' ? '#ff5983' : '#fce4ec',
+                    dark: mode === 'light' ? '#9a0036' : '#ad1457',
+                },
+                background: {
+                    default: mode === 'light' ? '#f5f5f5' : '#121212',
+                    paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
+                },
+                text: {
+                    primary: mode === 'light' ? '#1a1a1a' : '#ffffff',
+                    secondary: mode === 'light' ? '#666666' : '#b0b0b0',
+                },
+            },
+            typography: {
+                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                h1: {
+                    fontWeight: 600,
+                },
+                h2: {
+                    fontWeight: 600,
+                },
+                h3: {
+                    fontWeight: 600,
+                },
+                h4: {
+                    fontWeight: 500,
+                },
+                button: {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                },
+            },
+            shape: {
+                borderRadius: 8,
+            },
+            spacing: 8,
+            components: {
+                MuiAppBar: {
+                    styleOverrides: {
+                        root: {
+                            backgroundColor: mode === 'light' ? '#1976d2' : '#1e1e1e',
+                        },
+                    },
+                },
+                MuiCard: {
+                    styleOverrides: {
+                        root: {
+                            boxShadow: mode === 'light' 
+                                ? '0 2px 8px rgba(0,0,0,0.1)' 
+                                : '0 2px 8px rgba(0,0,0,0.3)',
+                            border: mode === 'light' 
+                                ? '1px solid #e0e0e0' 
+                                : '1px solid #333',
+                        },
+                    },
+                },
+            },
+        });
+    }, [mode]);
+
+    const toggleTheme = useCallback(() => {
+        const newMode = mode === 'light' ? 'dark' : 'light';
+        setMode(newMode);
+        localStorage.setItem('themeMode', newMode);
+    }, [mode]);
+
+    const setTheme = useCallback((newMode) => {
+        setMode(newMode);
+        localStorage.setItem('themeMode', newMode);
+    }, []);
+
+    return {
+        theme,
+        mode,
+        toggleTheme,
+        setTheme
+    };
+};
+
+// Компонент HomePage
 function HomePage() {
     const {
         technologies,
@@ -39,7 +169,7 @@ function HomePage() {
     } = useTechnologies();
 
     const { showSuccess, showError, showInfo, notification, hideNotification } = useNotification();
-    const { theme } = useTheme();
+    const theme = useAppTheme().theme; // Получаем тему из нашего кастомного хука
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -48,16 +178,18 @@ function HomePage() {
     const [searchState, setSearchState] = useState({ loading: false, error: null });
     const [showBulkEdit, setShowBulkEdit] = useState(false);
 
-    const randomizeNextTechnology = () => {
-        const notStarted = technologies.filter(tech => tech.status === 'not-started');
-        if (notStarted.length > 0) {
-            const randomTech = notStarted[Math.floor(Math.random() * notStarted.length)];
-            updateStatus(randomTech.id, 'in-progress');
-            showSuccess(`Технология "${randomTech.title}" начата!`);
-        } else {
-            showInfo('Все технологии уже начаты или завершены!');
-        }
-    };
+    const randomizeNextTechnology = useMemo(() => {
+        return () => {
+            const notStarted = technologies.filter(tech => tech.status === 'not-started');
+            if (notStarted.length > 0) {
+                const randomTech = notStarted[Math.floor(Math.random() * notStarted.length)];
+                updateStatus(randomTech.id, 'in-progress');
+                showSuccess(`Технология "${randomTech.title}" начата!`);
+            } else {
+                showInfo('Все технологии уже начаты или завершены!');
+            }
+        };
+    }, [technologies, updateStatus, showSuccess, showInfo]);
 
     // Функция для обработки результатов поиска из API
     const handleSearchResults = (results) => {
@@ -242,8 +374,10 @@ function HomePage() {
     );
 }
 
+// Главный компонент App
 function App() {
-    const { theme, mode, toggleTheme, setTheme } = useTheme();
+    const { theme, mode, toggleTheme, setTheme } = useAppTheme();
+    const { isLoggedIn, username, login, logout } = useAuth();
 
     return (
         <ThemeProvider theme={theme}>
@@ -254,20 +388,65 @@ function App() {
                         themeMode={mode}
                         onToggleTheme={toggleTheme}
                         onSetTheme={setTheme}
+                        isLoggedIn={isLoggedIn}
+                        username={username}
+                        onLogout={logout}
                     />
                     
                     <header className="App-header">
                         <h1>Трекер изучения технологий</h1>
                         <p>Прогресс в изучении React и связанных технологий</p>
+                        {isLoggedIn && (
+                            <p className="user-greeting">Добро пожаловать, {username}!</p>
+                        )}
                     </header>
 
                     <Routes>
                         <Route path="/" element={<HomePage />} />
-                        <Route path="/technology/:techId" element={<TechnologyDetail />} />
-                        <Route path="/technology/:techId/edit" element={<EditTechnology />} />
-                        <Route path="/add-technology" element={<AddTechnology />} />
-                        <Route path="/statistics" element={<Statistics />} />
-                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/login" element={<Login onLogin={login} />} />
+                        
+                        {/* Защищенные маршруты */}
+                        <Route 
+                            path="/technology/:techId" 
+                            element={
+                                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                                    <TechnologyDetail />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/technology/:techId/edit" 
+                            element={
+                                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                                    <EditTechnology />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/add-technology" 
+                            element={
+                                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                                    <AddTechnology />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/statistics" 
+                            element={
+                                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                                    <Statistics />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/settings" 
+                            element={
+                                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                                    <Settings />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                 </div>
