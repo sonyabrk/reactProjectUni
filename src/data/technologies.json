@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "title": "React",
+    "description": "Библиотека для создания пользовательских интерфейсов",
+    "category": "frontend",
+    "status": "not-started",
+    "difficulty": "beginner",
+    "resources": ["https://react.dev", "https://ru.reactjs.org"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "Node.js",
+    "description": "Среда выполнения JavaScript на сервере",
+    "category": "backend",
+    "status": "not-started",
+    "difficulty": "intermediate",
+    "resources": ["https://nodejs.org", "https://nodejs.org/ru/docs/"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "TypeScript",
+    "description": "Типизированное надмножество JavaScript",
+    "category": "frontend",
+    "status": "not-started",
+    "difficulty": "intermediate",
+    "resources": ["https://www.typescriptlang.org"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "title": "MongoDB",
+    "description": "Документоориентированная система управления базами данных",
+    "category": "backend",
+    "status": "not-started",
+    "difficulty": "intermediate",
+    "resources": ["https://www.mongodb.com"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "title": "Next.js",
+    "description": "Фреймворк React для производства",
+    "category": "frontend",
+    "status": "not-started",
+    "difficulty": "intermediate",
+    "resources": ["https://nextjs.org"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 6,
+    "title": "Express.js",
+    "description": "Фреймворк для Node.js",
+    "category": "backend",
+    "status": "not-started",
+    "difficulty": "beginner",
+    "resources": ["https://expressjs.com"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 7,
+    "title": "Redux",
+    "description": "Контейнер состояний для JavaScript приложений",
+    "category": "frontend",
+    "status": "not-started",
+    "difficulty": "intermediate",
+    "resources": ["https://redux.js.org"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 8,
+    "title": "GraphQL",
+    "description": "Язык запросов для API",
+    "category": "backend",
+    "status": "not-started",
+    "difficulty": "advanced",
+    "resources": ["https://graphql.org"],
+    "notes": "",
+    "createdAt": "2023-01-01T00:00:00.000Z"
+  }
+]

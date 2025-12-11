@@ -109,6 +109,7 @@
     padding: 8px 0;
     border-bottom: 1px solid #e1e5e9;
     font-size: 14px;
+    color: black;
 }
 
 .preview-item:last-child {

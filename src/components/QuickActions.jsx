@@ -9,7 +9,8 @@ function QuickActions({
     resetAllStatuses, 
     randomizeNextTechnology, 
     technologies,
-    onBulkUpdate 
+    bulkUpdateStatus,  // Измените имя пропса
+    showNotification  // Добавьте если нужно
 }) {
     const [showExportModal, setShowExportModal] = useState(false);
     const [showBulkEditModal, setShowBulkEditModal] = useState(false);
@@ -35,11 +36,22 @@ function QuickActions({
         setShowExportModal(true);
     };
 
-    const handleBulkUpdate = (ids, newStatus) => {
-        if (onBulkUpdate) {
-            onBulkUpdate(ids, newStatus);
+    const handleBulkUpdate = async (ids, newStatus) => {
+        try {
+            // Используем bulkUpdateStatus из пропсов
+            await bulkUpdateStatus(ids, newStatus);
+            setShowBulkEditModal(false);
+            
+            // Показываем уведомление если функция доступна
+            if (showNotification) {
+                showNotification(`Обновлено ${ids.length} технологий`, 'success');
+            }
+        } catch (error) {
+            console.error('Ошибка массового обновления:', error);
+            if (showNotification) {
+                showNotification('Ошибка при обновлении статусов', 'error');
+            }
         }
-        setShowBulkEditModal(false);
     };
 
     return (
@@ -55,7 +67,11 @@ function QuickActions({
                 <button onClick={randomizeNextTechnology} className="btn btn-info">
                     Случайный выбор следующей технологии
                 </button>
-                <button onClick={() => setShowBulkEditModal(true)} className="btn btn-bulk">
+                <button 
+                    onClick={() => setShowBulkEditModal(true)}
+                    disabled={technologies.length === 0}
+                    className="btn btn-bulk"
+                >
                     Массовое редактирование
                 </button>
                 <button onClick={handleExport} className="btn btn-export">
@@ -92,6 +108,7 @@ function QuickActions({
                 <BulkStatusEdit 
                     technologies={technologies}
                     onBulkUpdate={handleBulkUpdate}
+                    onClose={() => setShowBulkEditModal(false)}
                 />
             </Modal>
 

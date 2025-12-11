@@ -71,6 +71,94 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme, isLoggedIn, username
 
     const filteredNavItems = navItems.filter(item => item.show);
 
+    // Исправлено: удалены лишние Fragment и упорядочены дочерние элементы Menu
+    const mobileMenuContent = [
+        // Навигационные элементы
+        ...filteredNavItems.map((item) => (
+            <MenuItem
+                key={item.path}
+                onClick={() => handleNavigation(item.path)}
+                selected={isActive(item.path)}
+                sx={{
+                    backgroundColor: isActive(item.path) ? 
+                        'rgba(25, 118, 210, 0.1)' : 'transparent',
+                    '&:hover': {
+                        backgroundColor: 'rgba(25, 118, 210, 0.08)'
+                    }
+                }}
+            >
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                    {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                    primary={item.label}
+                    primaryTypographyProps={{
+                        fontWeight: isActive(item.path) ? 'bold' : 'normal'
+                    }}
+                />
+            </MenuItem>
+        )),
+        
+        // Разделитель
+        <Divider key="divider1" sx={{ my: 1 }} />,
+        
+        // Элементы авторизации
+        ...(isLoggedIn ? [
+            <MenuItem key="user-info" disabled>
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                    <AccountCircle />
+                </ListItemIcon>
+                <ListItemText 
+                    primary="Пользователь" 
+                    secondary={username}
+                />
+            </MenuItem>,
+            <MenuItem key="logout" onClick={handleLogoutClick}>
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                    <LogoutIcon />
+                </ListItemIcon>
+                <ListItemText primary="Выйти" />
+            </MenuItem>
+        ] : [
+            <MenuItem key="login" component={Link} to="/login">
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                    <LoginIcon />
+                </ListItemIcon>
+                <ListItemText primary="Войти" />
+            </MenuItem>
+        ]),
+        
+        // Разделитель
+        <Divider key="divider2" sx={{ my: 1 }} />,
+        
+        // Переключатель темы
+        <MenuItem 
+            key="theme-switcher"
+            sx={{ 
+                justifyContent: 'space-between',
+                '&:hover': {
+                    backgroundColor: 'transparent'
+                }
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                    {themeMode === 'light' ? <LightIcon /> : <DarkIcon />}
+                </ListItemIcon>
+                <ListItemText 
+                    primary="Тема" 
+                    secondary={themeMode === 'dark' ? 'Тёмная' : 'Светлая'}
+                />
+            </Box>
+            <Switch
+                size="small"
+                checked={themeMode === 'dark'}
+                onChange={onToggleTheme}
+                color="primary"
+            />
+        </MenuItem>
+    ];
+
     return (
         <AppBar position="static" sx={{ mb: 2 }}>
             <Toolbar>
@@ -214,87 +302,7 @@ function Navigation({ themeMode, onToggleTheme, onSetTheme, isLoggedIn, username
                                     'aria-labelledby': 'mobile-menu',
                                 }}
                             >
-                                {filteredNavItems.map((item) => (
-                                    <MenuItem
-                                        key={item.path}
-                                        onClick={() => handleNavigation(item.path)}
-                                        selected={isActive(item.path)}
-                                        sx={{
-                                            backgroundColor: isActive(item.path) ? 
-                                                'rgba(25, 118, 210, 0.1)' : 'transparent',
-                                            '&:hover': {
-                                                backgroundColor: 'rgba(25, 118, 210, 0.08)'
-                                            }
-                                        }}
-                                    >
-                                        <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                                            {item.icon}
-                                        </ListItemIcon>
-                                        <ListItemText 
-                                            primary={item.label}
-                                            primaryTypographyProps={{
-                                                fontWeight: isActive(item.path) ? 'bold' : 'normal'
-                                            }}
-                                        />
-                                    </MenuItem>
-                                ))}
-                                
-                                <Divider sx={{ my: 1 }} />
-                                
-                                {/* Авторизация для мобильной версии */}
-                                {isLoggedIn ? (
-                                    <>
-                                        <MenuItem disabled>
-                                            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                                                <AccountCircle />
-                                            </ListItemIcon>
-                                            <ListItemText 
-                                                primary="Пользователь" 
-                                                secondary={username}
-                                            />
-                                        </MenuItem>
-                                        <MenuItem onClick={handleLogoutClick}>
-                                            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                                                <LogoutIcon />
-                                            </ListItemIcon>
-                                            <ListItemText primary="Выйти" />
-                                        </MenuItem>
-                                    </>
-                                ) : (
-                                    <MenuItem component={Link} to="/login">
-                                        <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                                            <LoginIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary="Войти" />
-                                    </MenuItem>
-                                )}
-                                
-                                <Divider sx={{ my: 1 }} />
-                                
-                                <MenuItem 
-                                    sx={{ 
-                                        justifyContent: 'space-between',
-                                        '&:hover': {
-                                            backgroundColor: 'transparent'
-                                        }
-                                    }}
-                                >
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                                            {themeMode === 'light' ? <LightIcon /> : <DarkIcon />}
-                                        </ListItemIcon>
-                                        <ListItemText 
-                                            primary="Тема" 
-                                            secondary={themeMode === 'dark' ? 'Тёмная' : 'Светлая'}
-                                        />
-                                    </Box>
-                                    <Switch
-                                        size="small"
-                                        checked={themeMode === 'dark'}
-                                        onChange={onToggleTheme}
-                                        color="primary"
-                                    />
-                                </MenuItem>
+                                {mobileMenuContent}
                             </Menu>
                         </>
                     )}

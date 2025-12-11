@@ -78,14 +78,6 @@ function RoadmapImporter() {
         </div>
       )}
 
-      <div className="roadmap-info">
-        <h4>Что включено в дорожные карты:</h4>
-        <ul>
-          <li><strong>Фронтенд:</strong> React, TypeScript и related technologies</li>
-          <li><strong>Бэкенд:</strong> Node.js, MongoDB и server-side technologies</li>
-          <li><strong>Fullstack:</strong> Все технологии из обеих дорожных карт</li>
-        </ul>
-      </div>
     </div>
   );
 }

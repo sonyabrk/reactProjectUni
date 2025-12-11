@@ -21,6 +21,7 @@ import EditTechnology from './pages/EditTechnology';
 import DataImportExport from './components/DataImportExport';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import ApiWorkPanel from './components/ApiWorkPanel';
 
 // Новые импорты для Material-UI
 import Notification from './components/Notification';
@@ -240,6 +241,12 @@ function HomePage() {
         showInfo('Статусы всех технологий сброшены!');
     };
 
+    const handleAddFromApi = (tech) => {
+        addTechnology(tech);
+        showSuccess(`Технология "${tech.title}" добавлена в ваш трекер!`);
+    };
+
+
     return (
         <Box sx={{ pb: 2 }}>
             <ProgressHeader technologies={technologies} />
@@ -255,6 +262,9 @@ function HomePage() {
             />
 
             <Container maxWidth="xl" sx={{ mt: 2 }}>
+                {/* Блок работы с API */}
+                <ApiWorkPanel onAddTechnology={handleAddFromApi} />
+                
                 {/* Компонент импорта/экспорта */}
                 <DataImportExport />
 
@@ -382,7 +392,7 @@ function App() {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Router basename="/reactProjectUni">
+            <Router basename={"/reactProjectUni/"}>
                 <div className="App">
                     <Navigation 
                         themeMode={mode}

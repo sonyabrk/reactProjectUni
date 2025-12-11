@@ -3,7 +3,7 @@ import TechnologyResources from './TechnologyResources';
 import './TechnologyCard.css';
 
 function TechnologyCard({ technology, onStatusChange, onNotesChange, onResourcesUpdate }) {
-    const { id, title, description, status, notes } = technology;
+    const { id, title, description, status, notes, deadline } = technology;
 
     const handleCardClick = () => {
         const statusOrder = ['not-started', 'in-progress', 'completed'];
@@ -15,6 +15,23 @@ function TechnologyCard({ technology, onStatusChange, onNotesChange, onResources
     const handleNotesChange = (e) => {
         onNotesChange(id, e.target.value);
     };
+
+    // Функция для расчета статуса дедлайна
+    const getDeadlineStatus = () => {
+        if (!deadline) return null;
+        
+        const deadlineDate = new Date(deadline);
+        const now = new Date();
+        const diffTime = deadlineDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) return { text: 'Просрочено', className: 'deadline-overdue' };
+        if (diffDays <= 3) return { text: `Осталось ${diffDays} дня`, className: 'deadline-critical' };
+        if (diffDays <= 7) return { text: `Осталось ${diffDays} дней`, className: 'deadline-warning' };
+        return { text: `Осталось ${diffDays} дней`, className: 'deadline-ok' };
+    };
+
+    const deadlineStatus = getDeadlineStatus();
 
     return (
         <div className={`technology-card ${status}`}>
@@ -28,6 +45,25 @@ function TechnologyCard({ technology, onStatusChange, onNotesChange, onResources
                 
                 <p className="card-description">{description}</p>
                 
+                {/* Блок с дедлайном */}
+                {deadline && deadlineStatus && (
+                    <div className={`deadline-section ${deadlineStatus.className}`}>
+                        <div className="deadline-info">
+                            <span className="deadline-label">Дедлайн:</span>
+                            <span className="deadline-date">
+                                {new Date(deadline).toLocaleDateString('ru-RU', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })}
+                            </span>
+                        </div>
+                        <div className="deadline-status">
+                            {deadlineStatus.text}
+                        </div>
+                    </div>
+                )}
+
                 <div className="notes-section">
                     <h4>Заметки:</h4>
                     <textarea

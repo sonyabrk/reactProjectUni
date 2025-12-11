@@ -42,6 +42,29 @@ const Notification = ({
     onClose();
   };
 
+  const actionContent = action ? (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      {action}
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleClose}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  ) : (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleClose}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
+
   return (
     <Snackbar
       open={open}
@@ -58,19 +81,7 @@ const Notification = ({
         icon={getIcon()}
         severity={type}
         variant="filled"
-        action={
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {action}
-            <IconButton
-              size="small"
-              aria-label="close"
-              color="inherit"
-              onClick={handleClose}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        }
+        action={actionContent}
         sx={{
           width: '100%',
           alignItems: 'center',

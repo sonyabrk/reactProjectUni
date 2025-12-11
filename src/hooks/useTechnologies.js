@@ -1,4 +1,3 @@
-// src/hooks/useTechnologies.js
 import { useState, useEffect } from 'react';
 
 function useTechnologies() {
@@ -12,9 +11,7 @@ function useTechnologies() {
             if (event.key === 'technologies') {
                 const saved = localStorage.getItem('technologies');
                 if (saved) {
-                    requestAnimationFrame(() => {
-                        setTechnologies(JSON.parse(saved));
-                    });
+                    setTechnologies(JSON.parse(saved));
                 }
             }
         };
@@ -22,9 +19,7 @@ function useTechnologies() {
         const handleCustomEvent = () => {
             const saved = localStorage.getItem('technologies');
             if (saved) {
-                requestAnimationFrame(() => {
-                    setTechnologies(JSON.parse(saved));
-                });
+                setTechnologies(JSON.parse(saved));
             }
         };
 
@@ -36,6 +31,33 @@ function useTechnologies() {
             window.removeEventListener('technologiesUpdated', handleCustomEvent);
         };
     }, []);
+
+    // Функция для полной замены технологий - ЭТО ВАЖНО!
+    const replaceTechnologies = (newTechnologies) => {
+        // Валидация данных
+        if (!Array.isArray(newTechnologies)) {
+            console.error('replaceTechnologies ожидает массив');
+            throw new Error('Неверный формат данных');
+        }
+        
+        // Нормализация данных
+        const normalizedTechnologies = newTechnologies.map(tech => ({
+            ...tech,
+            id: tech.id || Date.now() + Math.random(),
+            status: tech.status || 'not-started',
+            notes: tech.notes || '',
+            resources: tech.resources || [],
+            category: tech.category || 'frontend',
+            createdAt: tech.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }));
+
+        setTechnologies(normalizedTechnologies);
+        localStorage.setItem('technologies', JSON.stringify(normalizedTechnologies));
+        window.dispatchEvent(new Event('technologiesUpdated'));
+        
+        return normalizedTechnologies;
+    };
 
     const updateStatus = (id, newStatus) => {
         const updated = technologies.map(tech =>
@@ -124,6 +146,7 @@ function useTechnologies() {
 
     return {
         technologies,
+        setTechnologies: replaceTechnologies, // Экспортируем как setTechnologies
         updateStatus,
         updateNotes,
         updateTechnologyResources,

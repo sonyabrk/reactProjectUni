@@ -1,39 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './BulkStatusEdit.css';
 
-function BulkStatusEdit({ technologies, onBulkUpdate }) {
+function BulkStatusEdit({ technologies, onBulkUpdate, onClose }) {
     const [selectedTechs, setSelectedTechs] = useState([]);
     const [newStatus, setNewStatus] = useState('not-started');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectAll, setSelectAll] = useState(false);
+
+    // Синхронизируем выбор всех
+    useEffect(() => {
+        if (selectAll) {
+            setSelectedTechs(technologies.map(tech => tech.id));
+        } else if (selectedTechs.length === technologies.length) {
+            setSelectAll(true);
+        }
+    }, [selectAll, technologies, selectedTechs.length]);
 
     const handleTechSelection = (techId, isSelected) => {
         if (isSelected) {
             setSelectedTechs(prev => [...prev, techId]);
         } else {
             setSelectedTechs(prev => prev.filter(id => id !== techId));
+            setSelectAll(false);
         }
     };
 
-    const handleSelectAll = (isSelected) => {
-        if (isSelected) {
+    const handleSelectAll = () => {
+        if (!selectAll) {
             setSelectedTechs(technologies.map(tech => tech.id));
         } else {
             setSelectedTechs([]);
         }
+        setSelectAll(!selectAll);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (selectedTechs.length === 0) return;
+        if (selectedTechs.length === 0) {
+            alert('Выберите хотя бы одну технологию');
+            return;
+        }
 
         setIsSubmitting(true);
         
         try {
             await onBulkUpdate(selectedTechs, newStatus);
             setSelectedTechs([]);
+            setSelectAll(false);
+            if (onClose) onClose();
         } catch (error) {
             console.error('Ошибка при массовом обновлении:', error);
+            alert('Произошла ошибка при обновлении статусов');
         } finally {
             setIsSubmitting(false);
         }
@@ -54,14 +72,14 @@ function BulkStatusEdit({ technologies, onBulkUpdate }) {
             
             <div className="bulk-controls">
                 <div className="selection-info">
-                    <span>Выбрано: {selectedTechs.length} технологий</span>
+                    <span>Выбрано: {selectedTechs.length} из {technologies.length} технологий</span>
                     {technologies.length > 0 && (
                         <button
                             type="button"
-                            onClick={() => handleSelectAll(selectedTechs.length !== technologies.length)}
+                            onClick={handleSelectAll}
                             className="btn-select-all"
                         >
-                            {selectedTechs.length === technologies.length ? 'Снять все' : 'Выбрать все'}
+                            {selectAll ? 'Снять все' : 'Выбрать все'}
                         </button>
                     )}
                 </div>
@@ -74,6 +92,7 @@ function BulkStatusEdit({ technologies, onBulkUpdate }) {
                             value={newStatus}
                             onChange={(e) => setNewStatus(e.target.value)}
                             aria-required="true"
+                            className="status-select"
                         >
                             <option value="not-started">Не начато</option>
                             <option value="in-progress">В процессе</option>
@@ -81,14 +100,25 @@ function BulkStatusEdit({ technologies, onBulkUpdate }) {
                         </select>
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={selectedTechs.length === 0 || isSubmitting}
-                        className="btn-apply"
-                        aria-busy={isSubmitting}
-                    >
-                        {isSubmitting ? 'Применение...' : `Применить к ${selectedTechs.length} технологиям`}
-                    </button>
+                    <div className="action-buttons">
+                        <button
+                            type="submit"
+                            disabled={selectedTechs.length === 0 || isSubmitting}
+                            className="btn-apply"
+                            aria-busy={isSubmitting}
+                        >
+                            {isSubmitting ? 'Применение...' : `Применить к ${selectedTechs.length} технологиям`}
+                        </button>
+                        {onClose && (
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="btn-cancel"
+                            >
+                                Отмена
+                            </button>
+                        )}
+                    </div>
                 </form>
             </div>
 
@@ -105,10 +135,19 @@ function BulkStatusEdit({ technologies, onBulkUpdate }) {
                                 className="tech-checkbox"
                             />
                             <label htmlFor={`tech-${tech.id}`} className="tech-label">
-                                <span className="tech-title">{tech.title}</span>
-                                <span className={`tech-status ${tech.status}`}>
-                                    {getStatusText(tech.status)}
-                                </span>
+                                <div className="tech-info">
+                                    <span className="tech-title">{tech.title}</span>
+                                    <div className="tech-details">
+                                        <span className={`tech-status ${tech.status}`}>
+                                            {getStatusText(tech.status)}
+                                        </span>
+                                        {tech.deadline && (
+                                            <span className="tech-deadline">
+                                                {new Date(tech.deadline).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </label>
                         </div>
                     ))}
